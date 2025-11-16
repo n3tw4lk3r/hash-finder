@@ -1,6 +1,6 @@
 # hash-finder
 
-A high-performance Rust application that finds SHA-256 hashes of consecutive integers ending with a specified number of trailing zeros. Utilizes parallel processing for optimal performance.
+A high-performance Rust application that finds SHA-256 hashes of consecutive integers ending with a specified number of zeros. Utilizes parallel processing for optimal performance.
 
 ## Features
 
