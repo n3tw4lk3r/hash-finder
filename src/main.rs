@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::thread;
 
 #[derive(Parser, Debug)]
-#[command(version, about = "Finds SHA-256 hashes with specified trailing zeros")]
+#[command(version, about = "Finds SHA-256 hashes ending with specified amount of zeros")]
 struct Args {
     #[arg(short = 'N', long)]
     zeros: usize,
