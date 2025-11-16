@@ -12,7 +12,7 @@ struct Args {
     zeros: usize,
     
     #[arg(short = 'F', long)]
-    results: usize,
+    results_count: usize,
 }
 
 fn main() {
@@ -20,22 +20,22 @@ fn main() {
     let threads_amount: usize = num_cpus::get();
     
     println!("Using {} threads to find {} hashes ending with {} zeros...", 
-             threads_amount, args.results, args.zeros);
+             threads_amount, args.results_count, args.zeros);
 
     let counter: Arc<AtomicU64> = Arc::new(AtomicU64::new(1));
     let (hash_sender, hash_receiver) = mpsc::channel();
 
     for _ in 0..threads_amount {
         let counter: Arc<AtomicU64> = Arc::clone(&counter);
-        let tx: mpsc::Sender<(u64, String)> = hash_sender.clone();
+        let hash_sender: mpsc::Sender<(u64, String)> = hash_sender.clone();
         let zeros: usize = args.zeros;
         
         thread::spawn(move || {
             loop {
-                let current_num: u64 = counter.fetch_add(1, Ordering::Relaxed);
+                let current_number: u64 = counter.fetch_add(1, Ordering::Relaxed);
                 
                 let mut hasher: Sha256 = Sha256::new();
-                hasher.update(current_num.to_string());
+                hasher.update(current_number.to_string());
                 let hash: [u8; 32] = hasher.finalize().into();
                 
                 let hash_hex: String = hash.iter()
@@ -43,7 +43,7 @@ fn main() {
                     .collect();
                 
                 if hash_hex.ends_with(&"0".repeat(zeros)) {
-                    if tx.send((current_num, hash_hex)).is_err() {
+                    if hash_sender.send((current_number, hash_hex)).is_err() {
                         break;
                     }
                 }
@@ -57,7 +57,7 @@ fn main() {
     for (number, hash) in hash_receiver {
         println!("{}, \"{}\"", number, hash);
         results_found += 1;
-        if results_found >= args.results {
+        if results_found >= args.results_count {
             break;
         }
     }
