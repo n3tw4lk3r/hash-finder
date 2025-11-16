@@ -1,0 +1,10 @@
+[package]
+name = "hash_finder"
+version = "0.1.0"
+edition = "2021"
+description = "High-performance SHA-256 hash finder with parallel processing"
+
+[dependencies]
+clap = { version = "4.4", features = ["derive"] }
+sha2 = "0.10"
+num_cpus = "1.0"
