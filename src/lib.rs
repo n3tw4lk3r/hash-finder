@@ -9,17 +9,17 @@ use std::thread;
 #[command(version, about = "Finds SHA-256 hashes ending with specified amount of zeros")]
 pub struct Args {
     #[arg(short = 'N', long)]
-    pub zeros_amount: usize,
+    pub number_of_zeros: usize,
     
     #[arg(short = 'F', long)]
-    pub results_count: usize,
+    pub number_of_results: usize,
 }
 
 fn validate_args(args: &Args) -> Result<(), String> {
-    if args.zeros_amount > 64 {
+    if args.number_of_zeros > 64 {
         return Err("Number of zeros cannot exceed 64".to_string());
     }
-    if args.results_count == 0 {
+    if args.number_of_results == 0 {
         return Err("Results count must be at least 1".to_string());
     }
     Ok(())
@@ -57,7 +57,7 @@ fn hash_worker(
 }
 
 fn spawn_worker_threads(
-    zeros_amount: usize,
+    number_of_zeros: usize,
     counter: Arc<AtomicU64>,
     hash_sender: mpsc::Sender<(u64, String)>,
 ) {
@@ -66,7 +66,7 @@ fn spawn_worker_threads(
     for _ in 0..threads_amount {
         let counter = Arc::clone(&counter);
         let hash_sender = hash_sender.clone();
-        let zeros = zeros_amount;
+        let zeros = number_of_zeros;
         
         thread::spawn(move || {
             hash_worker(counter, hash_sender, zeros);
@@ -97,14 +97,14 @@ pub fn run_application(args: Args) -> Result<(), String> {
     
     let threads_amount = num_cpus::get();
     println!("Using {} threads to find {} hashes ending with {} zeros...", 
-             threads_amount, args.results_count, args.zeros_amount);
+             threads_amount, args.number_of_results, args.number_of_zeros);
 
     let counter = Arc::new(AtomicU64::new(1));
     let (hash_sender, hash_receiver) = mpsc::channel();
 
-    spawn_worker_threads(args.zeros_amount, Arc::clone(&counter), hash_sender);
+    spawn_worker_threads(args.number_of_zeros, Arc::clone(&counter), hash_sender);
 
-    let results_found = collect_results(hash_receiver, args.results_count);
+    let results_found = collect_results(hash_receiver, args.number_of_results);
     println!("Successfully found {} results.", results_found);
     
     Ok(())
@@ -116,19 +116,19 @@ mod tests {
 
     #[test]
     fn test_validate_args_valid() {
-        let args = Args { zeros_amount: 5, results_count: 10 };
+        let args = Args { number_of_zeros: 5, number_of_results: 10 };
         assert!(validate_args(&args).is_ok());
     }
 
     #[test]
     fn test_validate_args_too_many_zeros() {
-        let args = Args { zeros_amount: 65, results_count: 10 };
+        let args = Args { number_of_zeros: 65, number_of_results: 10 };
         assert!(validate_args(&args).is_err());
     }
 
     #[test]
     fn test_validate_args_zero_results() {
-        let args = Args { zeros_amount: 3, results_count: 0 };
+        let args = Args { number_of_zeros: 3, number_of_results: 0 };
         assert!(validate_args(&args).is_err());
     }
 
