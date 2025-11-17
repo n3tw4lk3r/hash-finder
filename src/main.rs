@@ -9,7 +9,7 @@ use std::thread;
 #[command(version, about = "Finds SHA-256 hashes ending with specified amount of zeros")]
 struct Args {
     #[arg(short = 'N', long)]
-    zeros: usize,
+    zeros_amount: usize,
     
     #[arg(short = 'F', long)]
     results_count: usize,
@@ -20,7 +20,7 @@ fn main() {
     let threads_amount: usize = num_cpus::get();
     
     println!("Using {} threads to find {} hashes ending with {} zeros...", 
-             threads_amount, args.results_count, args.zeros);
+             threads_amount, args.results_count, args.zeros_amount);
 
     let counter: Arc<AtomicU64> = Arc::new(AtomicU64::new(1));
     let (hash_sender, hash_receiver) = mpsc::channel();
@@ -28,7 +28,7 @@ fn main() {
     for _ in 0..threads_amount {
         let counter: Arc<AtomicU64> = Arc::clone(&counter);
         let hash_sender: mpsc::Sender<(u64, String)> = hash_sender.clone();
-        let zeros: usize = args.zeros;
+        let zeros: usize = args.zeros_amount;
         
         thread::spawn(move || {
             loop {
